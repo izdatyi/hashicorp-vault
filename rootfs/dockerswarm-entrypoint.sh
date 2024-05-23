@@ -156,6 +156,10 @@ if [ -n "$VAULT_REDIRECT_NETWORK" ]; then
     export VAULT_REDIRECT_ADDR=$(dockerswarm_get_addr $VAULT_REDIRECT_NETWORK ${VAULT_REDIRECT_ADDR:-"http://0.0.0.0:8200"})
     echo "==> [Docker Swarm Entrypoint] Using \"$VAULT_REDIRECT_NETWORK\" network for VAULT_REDIRECT_ADDR: $VAULT_REDIRECT_ADDR"
 fi
+if [ -n "$VAULT_ADVERTISE_NETWORK" ]; then
+    export VAULT_ADVERTISE_ADDR=$(dockerswarm_get_addr $VAULT_ADVERTISE_NETWORK ${VAULT_ADVERTISE_ADDR:-"http://0.0.0.0:8200"})
+    echo "==> [Docker Swarm Entrypoint] Using \"$VAULT_ADVERTISE_NETWORK\" network for VAULT_ADVERTISE_ADDR: $VAULT_ADVERTISE_ADDR"
+fi
 if [ -n "$VAULT_CLUSTER_NETWORK" ]; then
     export VAULT_CLUSTER_ADDR=$(dockerswarm_get_addr $VAULT_CLUSTER_NETWORK ${VAULT_CLUSTER_ADDR:-"https://0.0.0.0:8201"})
     echo "==> [Docker Swarm Entrypoint] Using \"$VAULT_CLUSTER_NETWORK\" network for VAULT_CLUSTER_ADDR: $VAULT_CLUSTER_ADDR"
