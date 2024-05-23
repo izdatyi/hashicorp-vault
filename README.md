@@ -39,5 +39,3 @@ The key features of Vault are:
   all secrets read by a specific user, or all secrets of a particular type.
   Revocation assists in key rolling as well as locking down systems in the
   case of an intrusion.
-
-
