@@ -45,7 +45,7 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: |
-            ${{ github.repository }}
+            docker.io/${{ github.repository }}
             ghcr.io/${{ github.repository }}
           flavor: latest=false
           tags: ${{ inputs.tag-pattern }},value=${{ inputs.version }}
