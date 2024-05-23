@@ -1,5 +1,5 @@
+x-replicas: &x-replicas 1
 x-published-port: &x-published-port 8200
-x-replicas: &x-replicas 3
 
 x-placement-constraints: &x-placement-constraints
   - "node.role == manager"
