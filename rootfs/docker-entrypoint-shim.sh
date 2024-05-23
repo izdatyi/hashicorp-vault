@@ -60,6 +60,13 @@ if [ ! -f "$VAULT_STORAGE_CONFIG_FILE" ]; then
     echo "storage \"raft\" { /* default config */ }" > "$VAULT_STORAGE_CONFIG_FILE"
 fi
 
+# If VAULT_SEAL_TYPE is set to "transit", configure the transit seal
+# https://developer.hashicorp.com/vault/docs/configuration/seal/transit
+if [[ -n "$VAULT_SEAL_SECRET_FILE" ]] && [ -f "$VAULT_SEAL_SECRET_FILE" ]; then
+    echo "==> The Transit seal configuration is provided by the file \"$VAULT_SEAL_SECRET_FILE\", activating the Transit seal..."
+    cp "$VAULT_SEAL_SECRET_FILE" "$VAULT_CONFIG_DIR"
+fi
+
 # Specifies the identifier for the Vault cluster.
 # When connecting to Vault Enterprise, this value will be used in the interface.
 # This value also used to identify the cluster in the Prometheus metrics.
@@ -138,15 +145,6 @@ telemetry {
     disable_hostname = true
 }
 EOT
-
-# If VAULT_SEAL_TYPE is set to "transit", configure the transit seal
-# https://developer.hashicorp.com/vault/docs/configuration/seal/transit
-if [[ "$VAULT_SEAL_TYPE" == "transit" ]] && [[ -n "$VAULT_SEAL_SECRET_FILE" ]]; then
-    if [ -f "$VAULT_SEAL_SECRET_FILE" ]; then
-        echo "==> The Transit seal configuration is provided by the file \"$VAULT_SEAL_SECRET_FILE\", activating the Transit seal..."
-        cp "$VAULT_SEAL_SECRET_FILE" "$VAULT_CONFIG_DIR"
-    fi
-fi
 
 # run the original entrypoint
 echo "==> Starting Vault server..."
