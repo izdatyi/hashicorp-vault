@@ -58,10 +58,10 @@ The key features of Vault are:
 ## Entrypoints
 
 There are two entrypoints for the **Vault** container:
-- `default`: [`/docker-entrypoint-shim.sh`](../rootfs/docker-entrypoint-shim.sh)
+- `default`: [`/docker-entrypoint-shim.sh`](./rootfs/docker-entrypoint-shim.sh)
     
     The `default` entrypoint is used for the **Vault** container to start in **standalone** mode with the **Integrated Raft Storage** backend. It also provides the ability to configure the **Vault** instance using **Environment Variables**.
-- `dockerswarm`: [`/dockerswarm-entrypoint.sh`](../rootfs/dockerswarm-entrypoint.sh)
+- `dockerswarm`: [`/dockerswarm-entrypoint.sh`](./rootfs/dockerswarm-entrypoint.sh)
     
     The `dockerswarm` entrypoint is used for starting **Vault** in a **Docker Swarm** environment. It will automatically join the **Vault** cluster within the same stack using the **Integrated Raft Storage** backend and perform peer discovery using the **Docker** service discovery mechanism.
 
