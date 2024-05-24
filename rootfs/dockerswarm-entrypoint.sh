@@ -130,15 +130,6 @@ export DOCKERSWARM_STACK_NAMESPACE=${DOCKERSWARM_STACK_NAMESPACE}
 echo "==> [Docker Swarm Entrypoint] Waiting for Docker to configure the network and DNS resolution... (${DOCKERSWARM_STARTUP_DELAY}s)"
 sleep ${DOCKERSWARM_STARTUP_DELAY}
 
-# Auto-join the Docker Swarm service
-if [[ -n "${DOCKERSWARM_SERVICE_NAME}" ]]; then
-	echo "==> [Docker Swarm Entrypoint] configure auto-join for \"${DOCKERSWARM_SERVICE_NAME}\" stack..."
-	dockerswarm_auto_join $DOCKERSWARM_SERVICE_NAME &
-else
-	echo "==> [Docker Swarm Entrypoint] failed to configure auto-join: DOCKERSWARM_SERVICE_NAME is not set"
-	exit 1
-fi
-
 # Generate a random node ID which will be persisted in the data directory
 if [ ! -f "${VAULT_DATA_DIR}/node-id" ]; then
 	echo "==> [Docker Swarm Entrypoint] generate a random node ID which will be persisted in the data directory..."
@@ -163,6 +154,20 @@ fi
 if [ -n "$VAULT_CLUSTER_NETWORK" ]; then
 	export VAULT_CLUSTER_ADDR=$(dockerswarm_get_addr $VAULT_CLUSTER_NETWORK ${VAULT_CLUSTER_ADDR:-"https://0.0.0.0:8201"})
 	echo "==> [Docker Swarm Entrypoint] Using \"$VAULT_CLUSTER_NETWORK\" network for VAULT_CLUSTER_ADDR: $VAULT_CLUSTER_ADDR"
+fi
+
+# Auto-join the Docker Swarm service
+DOCKERSWARM_AUTO_JOIN_ENABLED=${DOCKERSWARM_AUTO_JOIN_ENABLED:-true}
+if [[ "${DOCKERSWARM_AUTO_JOIN_ENABLED}" == "true" ]]; then
+	if [[ -n "${DOCKERSWARM_SERVICE_NAME}" ]]; then
+		echo "==> [Docker Swarm Entrypoint] configure auto-join for \"${DOCKERSWARM_SERVICE_NAME}\" stack..."
+		dockerswarm_auto_join $DOCKERSWARM_SERVICE_NAME &
+	else
+		echo "==> [Docker Swarm Entrypoint] failed to configure auto-join: DOCKERSWARM_SERVICE_NAME is not set"
+		exit 1
+	fi
+else
+	echo "==> [Docker Swarm Entrypoint] auto-join is disabled"
 fi
 
 # If DOCKERSWARM_ENTRYPOINT is set, wait for the storage configuration file to be created
