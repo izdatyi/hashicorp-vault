@@ -11,25 +11,25 @@ services:
     command: server
     environment:
       # Specifies the identifier for the Vault cluster
-      - VAULT_CLUSTER_NAME
+      VAULT_CLUSTER_NAME:
       # Specifies the address (full URL) to advertise to other Vault servers in the cluster for
       # client redirection to this node when in High Availability mode. (default to VAULT_CLUSTER_ADDR value)
       # You can set either one of these values, the priority is as follows:
-      - VAULT_API_ADDR
-      - VAULT_REDIRECT_ADDR
+      VAULT_API_ADDR: 
+      VAULT_REDIRECT_ADDR: 
       # !!! DO NOT CHANGE THIS VALUES BELOW !!!
       # Default values for VAULT_ADVERTISE_ADDR & VAULT_CLUSTER_ADDR
-      - VAULT_ADVERTISE_ADDR=http://vault-{{.Node.ID}}.svc.cluster.local:8200
-      - VAULT_CLUSTER_ADDR=http://vault-{{.Node.ID}}.svc.cluster.local:8201
+      VAULT_ADVERTISE_ADDR: http://vault-{{.Node.ID}}.svc.cluster.local:8200
+      VAULT_CLUSTER_ADDR: http://vault-{{.Node.ID}}.svc.cluster.local:8201
       # Docker Swarm service template variables
-      - DOCKERSWARM_SERVICE_ID={{.Service.ID}}
-      - DOCKERSWARM_SERVICE_NAME={{.Service.Name}}
-      - DOCKERSWARM_NODE_ID={{.Node.ID}}
-      - DOCKERSWARM_NODE_HOSTNAME={{.Node.Hostname}}
-      - DOCKERSWARM_TASK_ID={{.Task.ID}}
-      - DOCKERSWARM_TASK_NAME={{.Task.Name}}
-      - DOCKERSWARM_TASK_SLOT={{.Task.Slot}}
-      - DOCKERSWARM_STACK_NAMESPACE={{ index .Service.Labels "com.docker.stack.namespace"}}
+      DOCKERSWARM_SERVICE_ID: "{{.Service.ID}}"
+      DOCKERSWARM_SERVICE_NAME: "{{.Service.Name}}"
+      DOCKERSWARM_NODE_ID: "{{.Node.ID}}"
+      DOCKERSWARM_NODE_HOSTNAME: "{{.Node.Hostname}}"
+      DOCKERSWARM_TASK_ID: "{{.Task.ID}}"
+      DOCKERSWARM_TASK_NAME: "{{.Task.Name}}"
+      DOCKERSWARM_TASK_SLOT: "{{.Task.Slot}}"
+      DOCKERSWARM_STACK_NAMESPACE: '{{ index .Service.Labels "com.docker.stack.namespace" }}'
     hostname: vault-{{.Node.ID}}.svc.cluster.local
     networks:
       vault_network:
