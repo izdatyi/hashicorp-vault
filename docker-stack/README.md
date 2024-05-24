@@ -17,5 +17,5 @@ There are two entrypoints for the **Vault** container:
 - `dockerswarm`: [`/dockerswarm-entrypoint.sh`](../rootfs/dockerswarm-entrypoint.sh)
     
     The `dockerswarm` entrypoint is used for starting **Vault** in a **Docker Swarm** environment. It will automatically join the **Vault** cluster within the same stack using the **Integrated Raft Storage** backend and perform peer discovery using the **Docker** service discovery mechanism.
-å
+
     > The `dockerswarm` entrypoint will redirect the execution context to the `default` entrypoint for starting the **Vault** instance.
