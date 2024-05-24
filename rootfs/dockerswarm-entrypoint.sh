@@ -111,7 +111,7 @@ VAULT_STORAGE_CONFIG_FILE=${VAULT_STORAGE_CONFIG_FILE:-"$VAULT_CONFIG_DIR/raft-s
 
 # Docker Swarm Entrypoint
 export DOCKERSWARM_ENTRYPOINT=true
-export DOCKERSWARM_STARTUP_DELAY=${DOCKERSWARM_STARTUP_DELAY:-15}
+export DOCKERSWARM_STARTUP_DELAY=${DOCKERSWARM_STARTUP_DELAY:-10}
 echo "Enable Docker Swarm Entrypoint..."
 
 # Docker Swarm service template variables
