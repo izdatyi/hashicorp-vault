@@ -1,10 +1,18 @@
+# Quick reference
+
+- **Maintained by**:  
+  [the Container Image Library for Docker Swarm Maintainers](https://github.com/swarmlibs)
+
+- Source of this image:  
+ [repo (/hashicorp-vault)](https://github.com/swarmlibs/hashicorp-vault)
+
 # About
 
 A tool for secrets management, encryption as a service, and privileged access management
 
-https://www.vaultproject.io/
+https://www.vaultproject.io
 
-<img width="300" alt="Vault Logo" src="https://github.com/hashicorp/vault/blob/f22d202cde2018f9455dec755118a9b84586e082/Vault_PrimaryLogo_Black.png">
+<img width="300" alt="Vault Logo" src="https://raw.githubusercontent.com/hashicorp/vault/f22d202cde2018f9455dec755118a9b84586e082/Vault_PrimaryLogo_Black.png">
 
 Vault is a tool for securely accessing secrets. A secret is anything that you want to tightly control access to, such as API keys, passwords, certificates, and more. Vault provides a unified interface to any secret, while providing tight access control and recording a detailed audit log.
 
@@ -39,3 +47,22 @@ The key features of Vault are:
   all secrets read by a specific user, or all secrets of a particular type.
   Revocation assists in key rolling as well as locking down systems in the
   case of an intrusion.
+
+
+## Features
+
+- Automatically join the Vault cluster within the same stack using the **Integrated Raft Storage** backend and perform peer discovery using the **Docker** service discovery mechanism.
+- Configure part of the Vault instance using **Environment Variables**.
+- Exported metrics for monitoring using **Prometheus**.
+
+## Entrypoints
+
+There are two entrypoints for the **Vault** container:
+- `default`: [`/docker-entrypoint-shim.sh`](../rootfs/docker-entrypoint-shim.sh)
+    
+    The `default` entrypoint is used for the **Vault** container to start in **standalone** mode with the **Integrated Raft Storage** backend. It also provides the ability to configure the **Vault** instance using **Environment Variables**.
+- `dockerswarm`: [`/dockerswarm-entrypoint.sh`](../rootfs/dockerswarm-entrypoint.sh)
+    
+    The `dockerswarm` entrypoint is used for starting **Vault** in a **Docker Swarm** environment. It will automatically join the **Vault** cluster within the same stack using the **Integrated Raft Storage** backend and perform peer discovery using the **Docker** service discovery mechanism.
+
+    > The `dockerswarm` entrypoint will redirect the execution context to the `default` entrypoint for starting the **Vault** instance.
