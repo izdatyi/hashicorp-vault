@@ -83,6 +83,23 @@ VAULT_LOG_REQUESTS_LEVEL=${VAULT_LOG_REQUESTS_LEVEL:-"info"}
 # Listener configuration
 VAULT_LISTENER_TLS_DISABLE=${VAULT_LISTENER_TLS_DISABLE:-"true"}
 
+# enables a PROXY protocol version 1 behavior for the listener
+if [[ -n "${VAULT_PROXY_PROTOCOL_BEHAVIOR}" ]]; then
+	VAULT_PROXY_PROTOCOL_BEHAVIOR="proxy_protocol_behavior = \"${VAULT_PROXY_PROTOCOL_BEHAVIOR}\""
+else
+	VAULT_PROXY_PROTOCOL_BEHAVIOR="# proxy_protocol_behavior = \"\""
+fi
+if [[ -n "${VAULT_PROXY_PROTOCOL_AUTHORIZED_ADDRS}" ]]; then
+	# check if VAULT_PROXY_PROTOCOL_AUTHORIZED_ADDRS being/end with "[...]"", indicating a list
+	if [[ "${VAULT_PROXY_PROTOCOL_AUTHORIZED_ADDRS}" == "["* ]] && [[ "${VAULT_PROXY_PROTOCOL_AUTHORIZED_ADDRS}" == *"]" ]]; then
+		VAULT_PROXY_PROTOCOL_AUTHORIZED_ADDRS="proxy_protocol_authorized_addrs = ${VAULT_PROXY_PROTOCOL_AUTHORIZED_ADDRS}"
+	else
+		VAULT_PROXY_PROTOCOL_AUTHORIZED_ADDRS="proxy_protocol_authorized_addrs = \"${VAULT_PROXY_PROTOCOL_AUTHORIZED_ADDRS}\""
+	fi
+else
+	VAULT_PROXY_PROTOCOL_AUTHORIZED_ADDRS="# proxy_protocol_authorized_addrs = \"\""
+fi
+
 # Lease configuration
 VAULT_DEFAULT_LEASE_TTL=${VAULT_DEFAULT_LEASE_TTL:-"0"}
 VAULT_MAX_LEASE_TTL=${VAULT_MAX_LEASE_TTL:-"0"}
@@ -137,6 +154,8 @@ listener "tcp" {
   telemetry {
 	unauthenticated_metrics_access = true
   }
+  ${VAULT_PROXY_PROTOCOL_BEHAVIOR}
+  ${VAULT_PROXY_PROTOCOL_AUTHORIZED_ADDRS}
 }
 
 # Prometheus metrics
