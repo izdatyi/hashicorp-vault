@@ -39,7 +39,7 @@ services:
         protocol: tcp
         mode: host
     volumes:
-      - vault-file:/vault/file
+      - vault-data:/vault/file
     cap_add:
       - IPC_LOCK
     deploy:
@@ -67,7 +67,7 @@ services:
         max_failure_ratio: 0.1
 
 volumes:
-  vault-file:
+  vault-data:
 
 networks:
   vault_network:
