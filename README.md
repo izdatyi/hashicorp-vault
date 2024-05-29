@@ -99,7 +99,7 @@ The following **Environment Variables** can be used to configure the **Vault** i
 
 - `VAULT_UI` `(default: true)`: Enables the built-in web UI, which is available on all listeners (address + port) at the `/ui` path. Browsers accessing the standard Vault API address will automatically redirect there.
 - `VAULT_LOG_LEVEL` `(default: info)`: Log verbosity level. Supported values (in order of descending detail) are `trace`, `debug`, `info`, `warn`, and `error`.
-- `VAULT_LOG_REQUESTS_LEVEL` `(default: info)`: The acceptable logging levels are `error`, `warn`, `info`, `debug`, `trace`, and `off`, which is the default
+- `VAULT_LOG_REQUESTS_LEVEL` `(default: off)`: The acceptable logging levels are `error`, `warn`, `info`, `debug`, `trace`, and `off`, which is the default
 
 ### Advanced Configurations
 
