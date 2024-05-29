@@ -66,3 +66,41 @@ There are two entrypoints for the **Vault** container:
     The `dockerswarm` entrypoint is used for starting **Vault** in a **Docker Swarm** environment. It will automatically join the **Vault** cluster within the same stack using the **Integrated Raft Storage** backend and perform peer discovery using the **Docker** service discovery mechanism.
 
     > The `dockerswarm` entrypoint will redirect the execution context to the `default` entrypoint for starting the **Vault** instance.
+
+## Environment Variables
+
+The following **Environment Variables** can be used to configure the **Vault** instance:
+
+### Bind Addresses
+
+> [!NOTE]
+> By default, **Vault** listens on all interfaces.
+
+### Advertising Addresses
+
+- `VAULT_API_INTERFACE`: Allow setting `VAULT_API_ADDR` using an interface name instead of an IP address.
+- `VAULT_REDIRECT_INTERFACE`: Allow setting `VAULT_REDIRECT_ADDR` using an interface name instead of an IP address.
+- `VAULT_CLUSTER_INTERFACE`: Allow setting `VAULT_CLUSTER_ADDR` using an interface name instead of an IP address.
+
+
+> [!NOTE]
+> If `VAULT_*_ADDR` is also set, the resulting URI will combine the protocol and port number with the IP of the named interface.
+
+### Cluster Configurations
+
+**Cluster Information**:
+- `VAULT_CLUSTER_NAME`: Specifies the identifier for the Vault cluster. If omitted, Vault will generate a value. When connecting to Vault Enterprise, this value will be used in the interface. It also used to identify the cluster in the Prometheus metrics.
+
+**Integrated Raft Storage**:
+- `VAULT_RAFT_NODE_ID`: The identifier for the node in the Raft cluster. If unset, Vault assigns a random GUID during initialization and writes the value to `data/node-id` in the directory specified by the `VAULT_RAFT_PATH` variable.
+- `VAULT_RAFT_PATH` `(default: /vault/file)`: The file system path where all the Vault data gets stored.
+
+### General Configurations
+
+- `VAULT_UI` `(default: true)`: Enables the built-in web UI, which is available on all listeners (address + port) at the `/ui` path. Browsers accessing the standard Vault API address will automatically redirect there.
+- `VAULT_LOG_LEVEL` `(default: info)`: Log verbosity level. Supported values (in order of descending detail) are `trace`, `debug`, `info`, `warn`, and `error`.
+- `VAULT_LOG_REQUESTS_LEVEL` `(default: info)`: The acceptable logging levels are `error`, `warn`, `info`, `debug`, `trace`, and `off`, which is the default
+
+### Advanced Configurations
+
+- `VAULT_RAW_STORAGE_ENDPOINT` `(default: false)`: Enables the `sys/raw` endpoint which allows the decryption/encryption of raw data into and out of the security barrier. This is a highly privileged endpoint.
