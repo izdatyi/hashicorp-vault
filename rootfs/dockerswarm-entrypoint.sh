@@ -132,7 +132,7 @@ export DOCKERSWARM_TASK_NAME=${DOCKERSWARM_TASK_NAME}
 export DOCKERSWARM_TASK_SLOT=${DOCKERSWARM_TASK_SLOT}
 export DOCKERSWARM_STACK_NAMESPACE=${DOCKERSWARM_STACK_NAMESPACE}
 
-echo "==> [Docker Swarm Entrypoint] Waiting for Docker to configure the network and DNS resolution... (${DOCKERSWARM_STARTUP_DELAY}s)"
+echo "==> [Docker Swarm Entrypoint] Waiting for Docker Swarm to configure the network and DNS resolution... (${DOCKERSWARM_STARTUP_DELAY}s)"
 sleep ${DOCKERSWARM_STARTUP_DELAY}
 
 # Generate a random node ID which will be persisted in the data directory
@@ -142,6 +142,12 @@ if [ ! -f "${VAULT_DATA_DIR}/node-id" ]; then
 fi
 # Set the VAULT_RAFT_NODE_ID to the content of the node-id file
 export VAULT_RAFT_NODE_ID=$(cat "${VAULT_DATA_DIR}/node-id")
+
+# Set the VAULT_CLUSTER_NAME using DOCKERSWARM_STACK_NAMESPACE
+if [ -n "$DOCKERSWARM_STACK_NAMESPACE" ]; then
+	export VAULT_CLUSTER_NAME=${DOCKERSWARM_STACK_NAMESPACE}
+	echo "==> [Docker Swarm Entrypoint] Using \"$DOCKERSWARM_STACK_NAMESPACE\" stack for VAULT_CLUSTER_NAME: $VAULT_CLUSTER_NAME"
+fi
 
 # Set the VAULT_*_ADDR using VAULT_*_NETWORK
 if [ -n "$DOCKERSWARM_VAULT_API_INTERFACE" ]; then
@@ -162,7 +168,7 @@ if [ -n "$DOCKERSWARM_VAULT_CLUSTER_INTERFACE" ]; then
 fi
 
 # Auto-join the Docker Swarm service
-DOCKERSWARM_AUTO_JOIN_ENABLED=${DOCKERSWARM_AUTO_JOIN_ENABLED:-true}
+export DOCKERSWARM_AUTO_JOIN_ENABLED=${DOCKERSWARM_AUTO_JOIN_ENABLED:-true}
 if [[ "${DOCKERSWARM_AUTO_JOIN_ENABLED}" == "true" ]]; then
 	if [[ -n "${DOCKERSWARM_SERVICE_NAME}" ]]; then
 		echo "==> [Docker Swarm Entrypoint] configure auto-join for \"${DOCKERSWARM_SERVICE_NAME}\" stack..."
