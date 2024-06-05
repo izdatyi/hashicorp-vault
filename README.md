@@ -1,7 +1,7 @@
 # Quick reference
 
 - **Maintained by**:  
-  [the Container Image Library for Docker Swarm Maintainers](https://github.com/swarmlibs)
+  [the Swarm Library Maintainers](https://github.com/swarmlibs)
 
 - Source of this image:  
  [repo (/hashicorp-vault)](https://github.com/swarmlibs/hashicorp-vault)
