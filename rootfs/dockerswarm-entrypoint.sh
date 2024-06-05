@@ -59,6 +59,11 @@ function dockerswarm_auto_join() {
 	# Loop to check the tasks of the service
 	local current_cluster_ips=""
 	while true; do
+		# Grace period before checking the tasks again
+		# This is to avoid high CPU usage
+		sleep 15
+
+		# Get the cluster IPs of the service
 		local auto_join_config=""
 		local cluster_ips=$(dockerswarm_sd "${1}")
 		# Skip if the cluster_ips is empty
@@ -96,7 +101,6 @@ function dockerswarm_auto_join() {
 				kill -s SIGHUP $(cat $VAULT_PID_FILE)
 			fi
 		fi
-		sleep 15
 	done
 }
 
