@@ -104,3 +104,66 @@ The following **Environment Variables** can be used to configure the **Vault** i
 ### Advanced Configurations
 
 - `VAULT_RAW_STORAGE_ENDPOINT` `(default: false)`: Enables the `sys/raw` endpoint which allows the decryption/encryption of raw data into and out of the security barrier. This is a highly privileged endpoint.
+
+## Docker Stack
+
+The following is an example of a **Docker Stack** configuration for deploying a **Vault** service in a **Docker Swarm** environment:
+
+```
+x-replicas: &x-replicas 1
+x-published-port: &x-published-port 8200
+
+x-placement-constraints: &x-placement-constraints
+  - "node.role == manager"
+
+services:
+  server:
+    image: swarmlibs/hashicorp-vault:1.16
+    entrypoint: /dockerswarm-entrypoint.sh
+    command: server
+    environment:
+      # Specifies the identifier for the Vault cluster
+      VAULT_CLUSTER_NAME:
+      # Specifies the address (full URL) to advertise to other Vault servers in the cluster for
+      # client redirection to this node when in High Availability mode. (default to VAULT_CLUSTER_ADDR value)
+      # You can set either one of these values, the priority is as follows:
+      VAULT_API_ADDR: 
+      VAULT_REDIRECT_ADDR: 
+      # !!! DO NOT CHANGE THIS VALUES BELOW !!!
+      # Default values for VAULT_ADVERTISE_ADDR & VAULT_CLUSTER_ADDR
+      VAULT_ADVERTISE_ADDR: http://vault-{{.Node.ID}}.svc.cluster.local:8200
+      VAULT_CLUSTER_ADDR: http://vault-{{.Node.ID}}.svc.cluster.local:8201
+      # Docker Swarm service template variables
+      DOCKERSWARM_SERVICE_ID: "{{.Service.ID}}"
+      DOCKERSWARM_SERVICE_NAME: "{{.Service.Name}}"
+      DOCKERSWARM_NODE_ID: "{{.Node.ID}}"
+      DOCKERSWARM_NODE_HOSTNAME: "{{.Node.Hostname}}"
+      DOCKERSWARM_TASK_ID: "{{.Task.ID}}"
+      DOCKERSWARM_TASK_NAME: "{{.Task.Name}}"
+      DOCKERSWARM_TASK_SLOT: "{{.Task.Slot}}"
+      DOCKERSWARM_STACK_NAMESPACE: '{{ index .Service.Labels "com.docker.stack.namespace" }}'
+    hostname: vault-{{.Node.ID}}.svc.cluster.local
+    networks:
+      vault_network:
+    ports:
+      - target: 8200
+        published: *x-published-port
+        protocol: tcp
+        mode: host
+    volumes:
+      - vault-data:/vault/file
+    cap_add:
+      - IPC_LOCK
+    deploy:
+      mode: replicated
+      replicas: *x-replicas
+      placement:
+        max_replicas_per_node: 1
+        constraints: *x-placement-constraints
+
+volumes:
+  vault-data:
+
+networks:
+  vault_network:
+```
