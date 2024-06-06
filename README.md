@@ -109,7 +109,7 @@ The following **Environment Variables** can be used to configure the **Vault** i
 
 The following is an example of a **Docker Stack** configuration for deploying a **Vault** service in a **Docker Swarm** environment:
 
-```
+```yaml
 x-replicas: &x-replicas 1
 x-published-port: &x-published-port 8200
 
