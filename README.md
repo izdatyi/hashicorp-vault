@@ -167,3 +167,30 @@ volumes:
 networks:
   vault_network:
 ```
+
+## Prometheus Metrics
+
+The **Vault** instance exports metrics for monitoring using **Prometheus**. The metrics are available at the `/v1/sys/metrics` path on the **Vault** listener address.
+
+The following is an example of a **Prometheus** configuration for scraping the **Vault** metrics:
+
+```yaml
+x-replicas: &x-replicas 1
+x-published-port: &x-published-port 8200
+
+x-placement-constraints: &x-placement-constraints
+  - "node.role == manager"
+
+services:
+  server:
+    image: swarmlibs/hashicorp-vault:1.16
+    # ...
+    deploy:
+      # ...
+      labels:
+        io.prometheus.enabled: "true"
+        io.prometheus.job_name: "vault"
+        io.prometheus.scrape_port: "8200"
+        io.prometheus.metrics_path: "/v1/sys/metrics"
+        io.prometheus.param_format: "prometheus"
+```
