@@ -160,8 +160,12 @@ listener "tcp" {
 
 # Prometheus metrics
 telemetry {
-	prometheus_retention_time = "24h"
+	# It is recommended to also enable the option disable_hostname to avoid having prefixed metrics with hostname.
 	disable_hostname = true
+	# Specifies the interval at which high-cardinality usage data is collected, such as token counts, entity counts, and secret counts. 
+	usage_gauge_period = "24h"
+	# Specifies the amount of time that Prometheus metrics are retained in memory.
+	prometheus_retention_time = "24h"
 }
 EOT
 
