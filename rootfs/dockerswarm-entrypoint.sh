@@ -59,22 +59,20 @@ function dockerswarm_auto_join() {
 	# Loop to check the tasks of the service
 	local current_cluster_ips=""
 	while true; do
-		# Grace period before checking the tasks again
-		# This is to avoid high CPU usage
-		sleep 15
-
 		# Get the cluster IPs of the service
 		local auto_join_config=""
 		local cluster_ips=$(dockerswarm_sd "${1}")
 		# Skip if the cluster_ips is empty
 		if [[ -z "${cluster_ips}" ]]; then
 			current_cluster_ips="" # reset the current_cluster_ips
+			sleep 15 # Grace period before checking the tasks again
 			continue
 		fi
 		# if cluster_ips only contains one IP address, then it's a single node cluster
 		if [[ $(echo "${cluster_ips}" | wc -l) -eq 1 ]]; then
 			# Write the configuration to the file
 			echo "storage \"raft\" { /* single node cluster */ }" > "$VAULT_STORAGE_CONFIG_FILE"
+			sleep 15 # Grace period before checking the tasks again
 			continue
 		fi
 		# Check if the current_cluster_ips is different from the cluster_ips
@@ -85,6 +83,7 @@ function dockerswarm_auto_join() {
 			for task in ${cluster_ips}; do
 				# Skip if the task is the current node
 				if [[ "$(hostname -i)" == *"${task}"* ]]; then
+					sleep 15 # Grace period before checking the tasks again
 					continue
 				fi
 				# Add the task to the auto_join_config
@@ -101,6 +100,7 @@ function dockerswarm_auto_join() {
 				kill -s SIGHUP $(cat $VAULT_PID_FILE)
 			fi
 		fi
+		sleep 15 # Grace period before checking the tasks again
 	done
 }
 
@@ -115,7 +115,7 @@ VAULT_STORAGE_CONFIG_FILE=${VAULT_STORAGE_CONFIG_FILE:-"$VAULT_CONFIG_DIR/raft-s
 
 # Docker Swarm Entrypoint
 export DOCKERSWARM_ENTRYPOINT=true
-export DOCKERSWARM_STARTUP_DELAY=${DOCKERSWARM_STARTUP_DELAY:-10}
+export DOCKERSWARM_STARTUP_DELAY=${DOCKERSWARM_STARTUP_DELAY:-15}
 echo "Enable Docker Swarm Entrypoint..."
 
 # Docker Swarm service template variables
