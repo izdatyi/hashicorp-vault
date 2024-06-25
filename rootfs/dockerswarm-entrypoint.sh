@@ -11,46 +11,6 @@ function dockerswarm_sd() {
 	dig +short "tasks.${service_name}" | sort
 }
 
-# Get IP address using the Docker service network name instead of interface name
-function docker_network_addr() {
-	local network_name=$1
-	if [ -z "$network_name" ]; then
-		echo "[docker_network_addr]: command line is not complete, network name is required"
-		return 1
-	fi
-	# Loop through assigned IP addresses to the host
-	for ip in $(hostname -i); do
-		# Query the PTR record for the IP address
-		local ptr_record=$(host "$ip" | cut -d ' ' -f 5)
-		# If the PTR record is empty, skip to the next IP address
-		if [ -z "$ptr_record" ]; then
-			continue
-		fi
-		# Filter the PTR record to get the network name
-		local service_network=$(echo "$ptr_record" | cut -d '.' -f 4)
-		# Check if the network name matches the input network name
-		if [[ "$service_network" == *"$network_name" ]]; then
-			echo "$ip"
-			return
-		fi
-	done
-
-	echo "[docker_network_addr]: can't find network '$network_name'"
-	return 2
-}
-
-# Get the internal IP address of the Docker host
-function docker_get_host_addr() {
-	host host.docker.internal | awk '{print $4}'
-}
-
-# A custom implementation for get_addr from official Vault image
-function docker_get_addr() {
-	local if_name=$1
-	local uri_template=$2
-	docker_network_addr $if_name | awk -v uri=$uri_template '{print gensub(/^(.+:\/\/).+(:.+)$/, "\\1" $1 "\\2", "g", uri)}'
-}
-
 # Docker Swarm Auto Join for Hashicorp Vault
 function dockerswarm_auto_join() {
 	local auto_join_scheme=${DOCKERSWARM_AUTO_JOIN_SCHEME:-"http"}
@@ -151,24 +111,6 @@ export VAULT_RAFT_NODE_ID=$(cat "${VAULT_DATA_DIR}/node-id")
 if [ -n "$DOCKERSWARM_STACK_NAMESPACE" ]; then
 	export VAULT_CLUSTER_NAME=${DOCKERSWARM_STACK_NAMESPACE}
 	echo "==> [Docker Swarm Entrypoint] using \"$DOCKERSWARM_STACK_NAMESPACE\" stack for VAULT_CLUSTER_NAME: $VAULT_CLUSTER_NAME"
-fi
-
-# Set the VAULT_*_ADDR using VAULT_*_NETWORK
-if [ -n "$DOCKERSWARM_VAULT_API_INTERFACE" ]; then
-	export VAULT_API_ADDR=$(docker_get_addr $DOCKERSWARM_VAULT_API_INTERFACE ${VAULT_API_ADDR:-"https://0.0.0.0:8200"})
-	echo "==> [Docker Swarm Entrypoint] using \"$DOCKERSWARM_VAULT_API_INTERFACE\" network for VAULT_API_ADDR: $VAULT_API_ADDR"
-fi
-if [ -n "$DOCKERSWARM_VAULT_REDIRECT_INTERFACE" ]; then
-	export VAULT_REDIRECT_ADDR=$(docker_get_addr $DOCKERSWARM_VAULT_REDIRECT_INTERFACE ${VAULT_REDIRECT_ADDR:-"http://0.0.0.0:8200"})
-	echo "==> [Docker Swarm Entrypoint] using \"$DOCKERSWARM_VAULT_REDIRECT_INTERFACE\" network for VAULT_REDIRECT_ADDR: $VAULT_REDIRECT_ADDR"
-fi
-if [ -n "$DOCKERSWARM_VAULT_ADVERTISE_INTERFACE" ]; then
-	export VAULT_ADVERTISE_ADDR=$(docker_get_addr $DOCKERSWARM_VAULT_ADVERTISE_INTERFACE ${VAULT_ADVERTISE_ADDR:-"http://0.0.0.0:8200"})
-	echo "==> [Docker Swarm Entrypoint] using \"$DOCKERSWARM_VAULT_ADVERTISE_INTERFACE\" network for VAULT_ADVERTISE_ADDR: $VAULT_ADVERTISE_ADDR"
-fi
-if [ -n "$DOCKERSWARM_VAULT_CLUSTER_INTERFACE" ]; then
-	export VAULT_CLUSTER_ADDR=$(docker_get_addr $DOCKERSWARM_VAULT_CLUSTER_INTERFACE ${VAULT_CLUSTER_ADDR:-"https://0.0.0.0:8201"})
-	echo "==> [Docker Swarm Entrypoint] using \"$DOCKERSWARM_VAULT_CLUSTER_INTERFACE\" network for VAULT_CLUSTER_ADDR: $VAULT_CLUSTER_ADDR"
 fi
 
 # Auto-join the Docker Swarm service
