@@ -2,6 +2,9 @@
 
 x-replicas: &x-replicas 3
 
+x-deploy: &x-deploy
+  replicas: *x-replicas
+
 services:
   server:
     image: swarmlibs/hashicorp-vault:local
@@ -33,24 +36,43 @@ services:
     networks:
       vault:
     volumes:
-      - vault_data:/vault/file
+      - type: volume
+        source: vault_data
+        target: /vault/file
     cap_add:
       - IPC_LOCK
     deploy:
-      replicas: *x-replicas
+      <<: *x-deploy
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+      update_config:
+        order: stop-first
+        monitor: 120s
+        parallelism: 1
+        failure_action: pause
+        max_failure_ratio: 0.1
+      rollback_config:
+        order: stop-first
+        parallelism: 1
+        monitor: 120s
+        failure_action: pause
+        max_failure_ratio: 0.1
 
-  loki-gateway:
+  vault-gateway:
     image: swarmlibs/docker-task-proxy:main
     environment:
-      - TARGET_TASK_ADDR=replica-{{.Task.Slot}}.vault-.svc.cluster.local:8200
+      - TARGET_TASK_ADDR=replica-{{.Task.Slot}}.vault.svc.cluster.local:8200
     deploy:
-      replicas: *x-replicas
+      <<: *x-deploy
       labels:
         io.prometheus.enabled: "true"
         io.prometheus.job_name: "vault"
         io.prometheus.metrics_path: "/v1/sys/metrics"
         io.prometheus.param_format: "prometheus"
-    hostname: grafana-loki.svc.cluster.local
+    hostname: vault.svc.cluster.local
     ports:
       - published: 8200
         target: 80
