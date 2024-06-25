@@ -28,10 +28,14 @@ function dockerswarm_auto_join() {
 			sleep 15 # Grace period before checking the tasks again
 			continue
 		fi
-		# if cluster_ips only contains one IP address, then it's a single node cluster
-		if [[ $(echo "${cluster_ips}" | wc -l) -eq 1 ]]; then
+		# if VAULT_STORAGE_BOOTSTRAP_EXPECT is equal to 1, then it's a single node cluster
+		if [[ ${VAULT_STORAGE_BOOTSTRAP_EXPECT} -eq 1 ]]; then
 			# Write the configuration to the file
 			echo "storage \"raft\" { /* single node cluster */ }" > "$VAULT_STORAGE_CONFIG_FILE"
+			break
+		fi
+		# if cluster_ips is less than VAULT_STORAGE_BOOTSTRAP_EXPECT, then wait for more tasks to join
+		if [[ $(echo "${cluster_ips}" | wc -l) -lt ${VAULT_STORAGE_BOOTSTRAP_EXPECT} ]]; then
 			sleep 15 # Grace period before checking the tasks again
 			continue
 		fi
@@ -60,7 +64,8 @@ function dockerswarm_auto_join() {
 				kill -s SIGHUP $(cat $VAULT_PID_FILE)
 			fi
 		fi
-		sleep 15 # Grace period before checking the tasks again
+		# All done, break the loop
+		break
 	done
 }
 
@@ -71,6 +76,7 @@ function dockerswarm_auto_join() {
 VAULT_DATA_DIR=/vault/file
 VAULT_CONFIG_DIR=/vault/config
 VAULT_PID_FILE=/vault/config/vault.pid
+VAULT_STORAGE_BOOTSTRAP_EXPECT=${VAULT_STORAGE_BOOTSTRAP_EXPECT:-1}
 VAULT_STORAGE_CONFIG_FILE=${VAULT_STORAGE_CONFIG_FILE:-"$VAULT_CONFIG_DIR/raft-storage.hcl"}
 
 # Docker Swarm Entrypoint
@@ -118,7 +124,7 @@ export DOCKERSWARM_AUTO_JOIN_ENABLED=${DOCKERSWARM_AUTO_JOIN_ENABLED:-true}
 if [[ "${DOCKERSWARM_AUTO_JOIN_ENABLED}" == "true" ]]; then
 	if [[ -n "${DOCKERSWARM_SERVICE_NAME}" ]]; then
 		echo "==> [Docker Swarm Entrypoint] configure auto-join for \"${DOCKERSWARM_SERVICE_NAME}\" stack..."
-		dockerswarm_auto_join $DOCKERSWARM_SERVICE_NAME &
+		dockerswarm_auto_join $DOCKERSWARM_SERVICE_NAME
 	else
 		echo "==> [Docker Swarm Entrypoint] failed to configure auto-join: DOCKERSWARM_SERVICE_NAME is not set"
 		exit 1
