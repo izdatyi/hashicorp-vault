@@ -31,13 +31,7 @@ if [ -n "$VAULT_API_INTERFACE" ]; then
 fi
 
 # Configure the Vault API address for CLI usage
-if [[ -n "${VAULT_API_ADDR}" ]]; then
-	export VAULT_ADDR=${VAULT_API_ADDR}
-elif [[ -n "${VAULT_REDIRECT_ADDR}" ]]; then
-	export VAULT_ADDR=${VAULT_REDIRECT_ADDR}
-elif [[ -n "${VAULT_ADVERTISE_ADDR}" ]]; then
-	export VAULT_ADDR=${VAULT_ADVERTISE_ADDR}
-fi
+export VAULT_ADDR=${VAULT_API_ADDR:-${VAULT_REDIRECT_ADDR:-${VAULT_ADVERTISE_ADDR:-"http://localhost:8200"}}}
 
 # Integrated storage (Raft) backend
 if [[ -n "${VAULT_RAFT_NODE_ID}" ]]; then
