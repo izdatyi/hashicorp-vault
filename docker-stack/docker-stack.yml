@@ -1,8 +1,13 @@
-x-replicas: &x-replicas 1
-x-published-port: &x-published-port 8200
+# yaml-language-server: $schema=https://raw.githubusercontent.com/swarmlibs/dockerstack-schema/main/schema/dockerstack-spec.json
 
-x-placement-constraints: &x-placement-constraints
-  - "node.role == manager"
+x-replicas: &x-replicas 3
+
+x-deploy: &x-deploy
+  mode: global
+  placement:
+    max_replicas_per_node: 1
+    constraints:
+      - node.labels.io.hashicorp.vault == true
 
 services:
   server:
@@ -15,12 +20,13 @@ services:
       # Specifies the address (full URL) to advertise to other Vault servers in the cluster for
       # client redirection to this node when in High Availability mode. (default to VAULT_CLUSTER_ADDR value)
       # You can set either one of these values, the priority is as follows:
-      VAULT_API_ADDR: 
-      VAULT_REDIRECT_ADDR: 
+      VAULT_API_ADDR:
+      VAULT_REDIRECT_ADDR:
       # !!! DO NOT CHANGE THIS VALUES BELOW !!!
       # Default values for VAULT_ADVERTISE_ADDR & VAULT_CLUSTER_ADDR
-      VAULT_ADVERTISE_ADDR: http://vault-{{.Node.ID}}.svc.cluster.local:8200
-      VAULT_CLUSTER_ADDR: http://vault-{{.Node.ID}}.svc.cluster.local:8201
+      VAULT_ADVERTISE_ADDR: http://replica-{{.Task.Slot}}.vault.svc.cluster.local:8200
+      VAULT_CLUSTER_ADDR: http://replica-{{.Task.Slot}}.vault.svc.cluster.local:8201
+      VAULT_STORAGE_BOOTSTRAP_EXPECT: *x-replicas
       # Docker Swarm service template variables
       DOCKERSWARM_SERVICE_ID: "{{.Service.ID}}"
       DOCKERSWARM_SERVICE_NAME: "{{.Service.Name}}"
@@ -30,24 +36,17 @@ services:
       DOCKERSWARM_TASK_NAME: "{{.Task.Name}}"
       DOCKERSWARM_TASK_SLOT: "{{.Task.Slot}}"
       DOCKERSWARM_STACK_NAMESPACE: '{{ index .Service.Labels "com.docker.stack.namespace" }}'
-    hostname: vault-{{.Node.ID}}.svc.cluster.local
+    hostname: replica-{{.Task.Slot}}.vault.svc.cluster.local
     networks:
-      vault_network:
-    ports:
-      - target: 8200
-        published: *x-published-port
-        protocol: tcp
-        mode: host
+      vault:
     volumes:
-      - vault-data:/vault/file
+      - type: volume
+        source: vault_data
+        target: /vault/file
     cap_add:
       - IPC_LOCK
     deploy:
-      mode: replicated
-      replicas: *x-replicas
-      placement:
-        max_replicas_per_node: 1
-        constraints: *x-placement-constraints
+      <<: *x-deploy
       restart_policy:
         condition: on-failure
         delay: 5s
@@ -66,8 +65,31 @@ services:
         failure_action: pause
         max_failure_ratio: 0.1
 
+  vault-gateway:
+    image: swarmlibs/docker-task-proxy:main
+    environment:
+      - TARGET_TASK_ADDR=replica-{{.Task.Slot}}.vault.svc.cluster.local:8200
+    deploy:
+      <<: *x-deploy
+      labels:
+        io.prometheus.enabled: "true"
+        io.prometheus.job_name: "vault"
+        io.prometheus.metrics_path: "/v1/sys/metrics"
+        io.prometheus.param_format: "prometheus"
+    hostname: vault.svc.cluster.local
+    ports:
+      - published: 8200
+        target: 80
+    networks:
+      vault:
+      prometheus:
+
 volumes:
-  vault-data:
+  vault_data:
 
 networks:
-  vault_network:
+  vault:
+
+  prometheus:
+    name: prometheus
+    external: true
