@@ -33,8 +33,12 @@ services:
       DOCKERSWARM_TASK_SLOT: "{{.Task.Slot}}"
       DOCKERSWARM_STACK_NAMESPACE: '{{ index .Service.Labels "com.docker.stack.namespace" }}'
     hostname: replica-{{.Task.Slot}}.vault.svc.cluster.local
+    ports:
+      - published: 8200
+        target: 8200
     networks:
       vault:
+      prometheus:
     volumes:
       - type: volume
         source: vault_data
@@ -43,6 +47,12 @@ services:
       - IPC_LOCK
     deploy:
       <<: *x-deploy
+      labels:
+        io.prometheus.enabled: "true"
+        io.prometheus.job_name: "vault"
+        io.prometheus.metrics_path: "/v1/sys/metrics"
+        io.prometheus.scrape_port: "8200"
+        io.prometheus.param_format: "prometheus"
       restart_policy:
         condition: on-failure
         delay: 5s
@@ -60,25 +70,6 @@ services:
         monitor: 120s
         failure_action: pause
         max_failure_ratio: 0.1
-
-  vault-gateway:
-    image: swarmlibs/docker-task-proxy:main
-    environment:
-      - TARGET_TASK_ADDR=replica-{{.Task.Slot}}.vault.svc.cluster.local:8200
-    deploy:
-      <<: *x-deploy
-      labels:
-        io.prometheus.enabled: "true"
-        io.prometheus.job_name: "vault"
-        io.prometheus.metrics_path: "/v1/sys/metrics"
-        io.prometheus.param_format: "prometheus"
-    hostname: vault.svc.cluster.local
-    ports:
-      - published: 8200
-        target: 80
-    networks:
-      vault:
-      prometheus:
 
 volumes:
   vault_data:
