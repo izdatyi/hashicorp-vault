@@ -1,6 +1,6 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/swarmlibs/dockerstack-schema/main/schema/dockerstack-spec.json
 
-x-replicas: &x-replicas 3
+x-replicas: &x-replicas ${VAULT_REPLICAS:-3}
 
 x-deploy: &x-deploy
   replicas: *x-replicas
@@ -8,10 +8,28 @@ x-deploy: &x-deploy
     max_replicas_per_node: 1
     constraints:
       - node.labels.io.hashicorp.vault == true
+  restart_policy:
+    condition: any
+    delay: 15s
+    max_attempts: 3
+    window: 120s
+  update_config:
+    order: stop-first
+    monitor: 120s
+    parallelism: 1
+    failure_action: rollback
+    max_failure_ratio: 0.1
+  rollback_config:
+    order: stop-first
+    parallelism: 1
+    monitor: 120s
+    failure_action: pause
+    max_failure_ratio: 0.1
 
 services:
+
   server:
-    image: swarmlibs/hashicorp-vault:1.16
+    image: swarmlibs/hashicorp-vault:local
     entrypoint: /dockerswarm-entrypoint.sh
     command: server
     environment:
@@ -23,10 +41,10 @@ services:
       VAULT_API_ADDR:
       VAULT_REDIRECT_ADDR:
       # !!! DO NOT CHANGE THIS VALUES BELOW !!!
-      # Default values for VAULT_ADVERTISE_ADDR & VAULT_CLUSTER_ADDR
-      VAULT_ADVERTISE_ADDR: http://replica-{{.Task.Slot}}.vault.svc.cluster.local:8200
-      VAULT_CLUSTER_ADDR: http://replica-{{.Task.Slot}}.vault.svc.cluster.local:8201
       VAULT_STORAGE_BOOTSTRAP_EXPECT: *x-replicas
+      # Default values for VAULT_ADVERTISE_ADDR & VAULT_CLUSTER_ADDR
+      VAULT_ADVERTISE_ADDR: http://replica-{{.Task.Slot}}.vault.local:8200
+      VAULT_CLUSTER_ADDR: http://replica-{{.Task.Slot}}.vault.local:8201
       # Docker Swarm service template variables
       DOCKERSWARM_SERVICE_ID: "{{.Service.ID}}"
       DOCKERSWARM_SERVICE_NAME: "{{.Service.Name}}"
@@ -36,7 +54,7 @@ services:
       DOCKERSWARM_TASK_NAME: "{{.Task.Name}}"
       DOCKERSWARM_TASK_SLOT: "{{.Task.Slot}}"
       DOCKERSWARM_STACK_NAMESPACE: '{{ index .Service.Labels "com.docker.stack.namespace" }}'
-    hostname: replica-{{.Task.Slot}}.vault.svc.cluster.local
+    hostname: replica-{{.Task.Slot}}.vault.local
     ports:
       - published: 8200
         target: 8200
@@ -45,42 +63,15 @@ services:
       prometheus:
     volumes:
       - type: volume
-        source: vault_data
+        source: vault-data
         target: /vault/file
     cap_add:
       - IPC_LOCK
-    deploy:
-      <<: *x-deploy
-      labels:
-        io.prometheus.enabled: "true"
-        io.prometheus.job_name: "vault"
-        io.prometheus.metrics_path: "/v1/sys/metrics"
-        io.prometheus.scrape_port: "8200"
-        io.prometheus.param_format: "prometheus"
-      restart_policy:
-        condition: on-failure
-        delay: 5s
-        max_attempts: 3
-        window: 120s
-      update_config:
-        order: stop-first
-        monitor: 120s
-        parallelism: 1
-        failure_action: pause
-        max_failure_ratio: 0.1
-      rollback_config:
-        order: stop-first
-        parallelism: 1
-        monitor: 120s
-        failure_action: pause
-        max_failure_ratio: 0.1
+    deploy: *x-deploy
 
 volumes:
-  vault_data:
+  vault-data:
 
 networks:
   vault:
-
-  prometheus:
-    name: prometheus
-    external: true
+    # Vault cluster network
