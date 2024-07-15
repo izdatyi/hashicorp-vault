@@ -94,6 +94,9 @@ else
 	VAULT_PROXY_PROTOCOL_AUTHORIZED_ADDRS="# proxy_protocol_authorized_addrs = \"\""
 fi
 
+# Vault telemetry configuration
+VAULT_TELEMETRY_USAGE_GAUGE_PERIOD=${VAULT_TELEMETRY_USAGE_GAUGE_PERIOD:-"10m"}
+
 # Lease configuration
 VAULT_DEFAULT_LEASE_TTL=${VAULT_DEFAULT_LEASE_TTL:-"0"}
 VAULT_MAX_LEASE_TTL=${VAULT_MAX_LEASE_TTL:-"0"}
@@ -163,7 +166,7 @@ telemetry {
 	# It is recommended to also enable the option disable_hostname to avoid having prefixed metrics with hostname.
 	disable_hostname = true
 	# Specifies the interval at which high-cardinality usage data is collected, such as token counts, entity counts, and secret counts. 
-	usage_gauge_period = "24h"
+	usage_gauge_period = "${VAULT_TELEMETRY_USAGE_GAUGE_PERIOD}"
 	# Specifies the amount of time that Prometheus metrics are retained in memory.
 	prometheus_retention_time = "24h"
 }
