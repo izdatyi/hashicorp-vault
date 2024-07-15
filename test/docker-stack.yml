@@ -41,7 +41,7 @@ services:
       prometheus:
     volumes:
       - type: volume
-        source: vault_data
+        source: vault-file
         target: /vault/file
     cap_add:
       - IPC_LOCK
@@ -72,7 +72,7 @@ services:
         max_failure_ratio: 0.1
 
 volumes:
-  vault_data:
+  vault-file:
     name: '{{.Service.Name}}_data_{{.Task.Slot}}'
 
 networks:
