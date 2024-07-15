@@ -168,6 +168,27 @@ networks:
   vault_network:
 ```
 
+## Raft AutoPilot Configuration
+
+The following is an example of Raft AutoPilot Configuration recommended for a **Vault** cluster:
+
+```sh
+curl -X 'POST' \
+  'http://localhost:8200/v1/sys/storage/raft/autopilot/configuration' \
+  -H 'accept: */*' \
+  -H 'Content-Type: application/json' \
+  -H 'X-Vault-Token: hvs.fqZ4JTEaWrDBkr3neGIw1mel' \
+  -d '{
+  "cleanup_dead_servers": true,
+  "dead_server_last_contact_threshold": "24h",
+  "last_contact_threshold": "10s",
+  "max_trailing_logs": 1000,
+  "min_quorum": 3,
+  "server_stabilization_time": "10s"
+}'
+```
+
+
 ## Prometheus Metrics
 
 The **Vault** instance exports metrics for monitoring using **Prometheus**. The metrics are available at the `/v1/sys/metrics` path on the **Vault** listener address.
