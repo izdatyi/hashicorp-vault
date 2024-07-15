@@ -33,9 +33,9 @@ services:
       DOCKERSWARM_TASK_SLOT: "{{.Task.Slot}}"
       DOCKERSWARM_STACK_NAMESPACE: '{{ index .Service.Labels "com.docker.stack.namespace" }}'
     hostname: replica-{{.Task.Slot}}.vault.svc.cluster.local
-    ports:
-      - published: 8200
-        target: 8200
+    # ports:
+    #   - published: 8200
+    #     target: 8200
     networks:
       vault:
       prometheus:
@@ -71,13 +71,30 @@ services:
         failure_action: pause
         max_failure_ratio: 0.1
 
+  ingress:
+    image: caddy:2.8
+    networks:
+      vault:
+    ports:
+      - published: 8200
+        target: 8200
+        protocol: tcp
+        mode: host
+    configs:
+      - source: Caddyfile
+        target: /etc/caddy/Caddyfile
+
+configs:
+  Caddyfile:
+    name: Caddyfile-v1
+    file: ./Caddyfile
+
 volumes:
   vault-file:
     name: '{{.Service.Name}}_data_{{.Task.Slot}}'
 
 networks:
   vault:
-
   prometheus:
     name: prometheus
     external: true

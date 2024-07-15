@@ -1,0 +1,9 @@
+http://replica-1.vault.local:8200 {
+	reverse_proxy replica-1.vault.svc.cluster.local:8200
+}
+http://replica-2.vault.local:8200 {
+	reverse_proxy replica-2.vault.svc.cluster.local:8200
+}
+http://replica-3.vault.local:8200 {
+	reverse_proxy replica-3.vault.svc.cluster.local:8200
+}
