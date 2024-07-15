@@ -145,11 +145,17 @@ listener "tcp" {
   tls_disable = ${VAULT_LISTENER_TLS_DISABLE}
   tls_cert_file = "${VAULT_LISTENER_TLS_CERT_FILE}"
   tls_key_file = "${VAULT_LISTENER_TLS_KEY_FILE}"
-  telemetry {
-	unauthenticated_metrics_access = true
-  }
   ${VAULT_PROXY_PROTOCOL_BEHAVIOR}
   ${VAULT_PROXY_PROTOCOL_AUTHORIZED_ADDRS}
+}
+
+# Prometheus metrics listener configuration
+listener "tcp" {
+	address = "0.0.0.0:8282"
+	tls_disable = true
+	telemetry {
+		unauthenticated_metrics_access = true
+	}
 }
 
 # Prometheus metrics

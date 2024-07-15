@@ -211,7 +211,7 @@ services:
       labels:
         io.prometheus.enabled: "true"
         io.prometheus.job_name: "vault"
-        io.prometheus.scrape_port: "8200"
+        io.prometheus.scrape_port: "8282"
         io.prometheus.metrics_path: "/v1/sys/metrics"
         io.prometheus.param_format: "prometheus"
 ```
