@@ -191,17 +191,12 @@ curl -X 'POST' \
 
 ## Prometheus Metrics
 
-The **Vault** instance exports metrics for monitoring using **Prometheus**. The metrics are available at the `/v1/sys/metrics` path on the **Vault** listener address.
+The **Vault** instance exports metrics for monitoring using **Prometheus**. The metrics are available at the `/v1/sys/metrics` path on the `8282` port.
+This port DOES NOT REQUIRE authentication, so it is recommended to restrict access to this port to only the **Prometheus** service.
 
 The following is an example of a **Prometheus** configuration for scraping the **Vault** metrics:
 
 ```yaml
-x-replicas: &x-replicas 1
-x-published-port: &x-published-port 8200
-
-x-placement-constraints: &x-placement-constraints
-  - "node.role == manager"
-
 services:
   server:
     image: swarmlibs/hashicorp-vault:1.16
