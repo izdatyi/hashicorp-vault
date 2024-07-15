@@ -12,17 +12,17 @@ x-deploy: &x-deploy
     condition: any
     delay: 15s
     max_attempts: 3
-    window: 120s
+    window: 190s
   update_config:
     order: stop-first
-    monitor: 120s
+    monitor: 190s
     parallelism: 1
     failure_action: rollback
     max_failure_ratio: 0.1
   rollback_config:
     order: stop-first
     parallelism: 1
-    monitor: 120s
+    monitor: 190s
     failure_action: pause
     max_failure_ratio: 0.1
 
