@@ -31,7 +31,7 @@ function dockerswarm_auto_join() {
 		# if VAULT_STORAGE_BOOTSTRAP_EXPECT is equal to 1, then it's a single node cluster
 		if [[ ${VAULT_STORAGE_BOOTSTRAP_EXPECT} -eq 1 ]]; then
 			# Write the configuration to the file
-			echo "storage \"raft\" { /* single node cluster */ }" > "$VAULT_STORAGE_CONFIG_FILE"
+			echo "disable_mlock = \"true\"  storage \"raft\" { /* single node cluster */ }" > "$VAULT_STORAGE_CONFIG_FILE"
 			break
 		fi
 		# if cluster_ips is less than VAULT_STORAGE_BOOTSTRAP_EXPECT, then wait for more tasks to join
@@ -57,7 +57,7 @@ function dockerswarm_auto_join() {
 				auto_join_config="${auto_join_config}retry_join { leader_api_addr = \"${auto_join_scheme}://${task}:${auto_join_port}\" }"
 			done
 			# Write the configuration to the file
-			echo "storage \"raft\" { ${auto_join_config} }" > "$VAULT_STORAGE_CONFIG_FILE"
+			echo "disable_mlock = \"true\"  storage \"raft\" { ${auto_join_config} }" > "$VAULT_STORAGE_CONFIG_FILE"
 			# Send a SIGHUP signal to reload the configuration
 			if [ -f "$VAULT_PID_FILE" ]; then
 				echo "==> [Docker Swarm Entrypoint] detected a change in the cluster, reloading the configuration..."
