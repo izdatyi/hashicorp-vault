@@ -33,20 +33,12 @@ jobs:
           username: ${{ vars.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Login to ghcr.io
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Generate Docker metadata
         id: docker-meta
         uses: docker/metadata-action@v5
         with:
           images: |
             docker.io/${{ github.repository }}
-            ghcr.io/${{ github.repository }}
           flavor: latest=false
           tags: ${{ inputs.tag-pattern }},value=${{ inputs.version }}
 
